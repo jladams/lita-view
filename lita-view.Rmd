@@ -1,0 +1,59 @@
+---
+title: "LITA Tweets"
+author: "James L. Adams"
+date: "11/15/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(tidytext)
+library(plotly)
+
+df <- read_csv("./data/tweets.csv", col_types = cols(id_str = col_character()))
+
+df_tidy <- df %>%
+  unnest_tokens(output = word, input = text) %>%
+  anti_join(stop_words)
+
+df_sentiment <- df_tidy %>%
+  left_join(get_sentiments(lexicon = "nrc")) %>%
+  filter(!is.na(sentiment)) %>%
+  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created,unit = "minutes")) %>%
+  summarize(frequency = n()) %>%
+  arrange(desc(frequency))
+
+sent_day <- df_sentiment %>%
+  group_by(day, sentiment) %>%
+  summarize(frequency = sum(frequency))
+
+```
+
+## Tweet Sentiment
+
+This is how tweets about #litaforum look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
+
+### Sentiment Frequency by Day
+
+```{r sent_day, echo = FALSE}
+
+sentiment_freq <- ggplot(sent_day, aes(x = sentiment, y = frequency)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  guides(fill = FALSE) +
+  facet_grid(.~day)
+
+ggplotly(sentiment_freq) %>% layout(showlegend = FALSE)
+```
+
+### Sentiment Frequency by Time
+```{r sent_time, echo = FALSE}
+sentiment_lines <- ggplot(df_sentiment, aes(x = time, y = frequency)) +
+  geom_line(aes(color = sentiment, group = sentiment)) +
+  geom_point(aes(color = sentiment)) +
+  facet_grid(day~.)
+
+ggplotly(sentiment_lines)
+```
+
