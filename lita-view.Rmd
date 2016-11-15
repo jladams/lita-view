@@ -11,6 +11,7 @@ library(tidyverse)
 library(lubridate)
 library(tidytext)
 library(plotly)
+library(ggthemes)
 
 df <- read_csv("./data/tweets.csv", col_types = cols(id_str = col_character()))
 
@@ -25,35 +26,75 @@ df_sentiment <- df_tidy %>%
   summarize(frequency = n()) %>%
   arrange(desc(frequency))
 
-sent_day <- df_sentiment %>%
+sent_day_specific <- df_sentiment %>%
+  filter(!(sentiment %in% c("positive", "negative"))) %>%
   group_by(day, sentiment) %>%
   summarize(frequency = sum(frequency))
+
+sent_day_generic <- df_sentiment %>%
+  filter((sentiment %in% c("positive", "negative"))) %>%
+  group_by(day, sentiment) %>%
+  summarize(frequency = sum(frequency))
+
+sent_time_specific <- df_sentiment %>%
+  filter(!(sentiment %in% c("positive", "negative")))
+
+sent_time_generic <- df_sentiment %>%
+  filter((sentiment %in% c("positive", "negative")))
 
 ```
 
 ## Tweet Sentiment
 
-This is how tweets about #litaforum look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
+During the LITA Forum 2016 so far we've had `r length(df$id_str)` tweets using the hashtag #litaforum.
+
+This is how those tweets look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
 
 ### Sentiment Frequency by Day
 
 ```{r sent_day, echo = FALSE}
-
-sentiment_freq <- ggplot(sent_day, aes(x = sentiment, y = frequency)) +
+sentiment_freq_generic <- ggplot(sent_day_generic, aes(x = sentiment, y = frequency)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
-  guides(fill = FALSE) +
-  facet_grid(.~day)
+  facet_grid(.~day) +
+  theme_hc() +
+  scale_fill_hc(guide = FALSE) +
+  geom_text(aes(label = frequency), vjust = 0) +
+  labs(title = "Positive vs. Negative", x = "")
 
-ggplotly(sentiment_freq) %>% layout(showlegend = FALSE)
+
+sentiment_freq_specific <- ggplot(sent_day_specific, aes(x = sentiment, y = frequency)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  facet_grid(.~day) +
+  theme_hc() +
+  scale_fill_hc(guide = FALSE) +
+  geom_text(aes(label = frequency), vjust = 0) +
+  labs(title = "Specific Emotions", x = "")
+
+print(sentiment_freq_generic)
+print(sentiment_freq_specific)
 ```
 
 ### Sentiment Frequency by Time
 ```{r sent_time, echo = FALSE}
-sentiment_lines <- ggplot(df_sentiment, aes(x = time, y = frequency)) +
+sent_lines_generic <- ggplot(sent_time_generic, aes(x = time, y = frequency)) +
   geom_line(aes(color = sentiment, group = sentiment)) +
   geom_point(aes(color = sentiment)) +
-  facet_grid(day~.)
+  facet_grid(day~.) +
+  theme_hc() +
+  scale_color_hc() +
+  labs(title = "Positive vs. Negative", x = "")
 
-ggplotly(sentiment_lines)
+sent_lines_specific <- ggplot(sent_time_specific, aes(x = time, y = frequency)) +
+  geom_line(aes(color = sentiment, group = sentiment)) +
+  geom_point(aes(color = sentiment)) +
+  facet_grid(day~.) +
+  theme_hc() +
+  scale_color_hc() +
+  labs(title = "Specific Emotions", x = "")
+
+ggplotly(sent_lines_generic) %>% layout(showlegend = FALSE)
+ggplotly(sent_lines_specific) %>% layout(showlegend = FALSE)
+
 ```
 
+Code is available on [GitHub](http://github.com/jladams/lita-view)
