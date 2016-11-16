@@ -12,4 +12,4 @@ filterStream(tweetTemp, track = "NationalFastFoodDay", timeout = 60, oauth = myo
 
 df_raw <- parseTweets(tweetTemp, simplify = TRUE)
 
-write_csv(df_raw, paste0("/Users/jamesadams/Box Sync/lita-tweets/", as.numeric(now()),"-raw.csv"))
+write_csv(df_raw, paste0("/Users/jamesadams/OneDrive - Dartmouth College/lita-tweets/", as.numeric(now()),"-raw.csv"))
