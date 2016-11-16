@@ -15,7 +15,7 @@ library(ggthemes)
 library(DT)
 library(stringr)
 
-files_raw <- list.files("~/Box Sync/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
+files_raw <- list.files("~/OneDrive - Dartmouth College/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
 tweets_raw <- lapply(files_raw, read_csv, col_types = cols(id_str = col_character(),
                                                            in_reply_to_user_id_str = col_character(),
                                                            in_reply_to_status_id_str = col_character(),
@@ -34,14 +34,17 @@ df <- df_raw %>%
          ) %>%
   select(screen_name, id_str, created, text, lang, geo_enabled, retweet_count, time_zone, is_retweet)
 
-users_tweets_per_day <- df %>%
+tweets_retweets_day <- df %>%
   group_by(day = date(created)) %>%
-  summarize(users = length(unique(screen_name)), tweets = length(text)) %>%
-  gather(variable, value, users:tweets)
+  summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet))) %>%
+  mutate(unique = tweets-retweets) %>%
+  gather(variable, value, -day)
 
-tweets_retweets <- df %>%
-  group_by(day = date(created)) %>%
-  summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet)))
+tweets_retweets_time <- df %>%
+  group_by(day = date(created), time = floor_date(created, unit = "minutes")) %>%
+  summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet))) %>%
+  mutate(unique = tweets-retweets) %>%
+  gather(variable, value, -time, -day)
 
 df_tidy <- df %>%
   unnest_tokens(output = word, input = text) %>%
@@ -50,7 +53,7 @@ df_tidy <- df %>%
 df_sentiment <- df_tidy %>%
   left_join(get_sentiments(lexicon = "nrc")) %>%
   filter(!is.na(sentiment)) %>%
-  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created,unit = "minutes")) %>%
+  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created, unit = "minutes")) %>%
   summarize(frequency = n()) %>%
   arrange(desc(frequency))
 
@@ -76,28 +79,66 @@ sent_time_generic <- df_sentiment %>%
 
 This is how those tweets break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
 
-Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view), data will be available soon.
+Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view).
 
-Last updated `r stamp("Tuesday, November 15, 2016 at 12:07 pm")(now())`. 
+Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 pm")(now())`. 
 
 ### Overview
 
-#### \#litaforum has had `r length(df$text)` tweets total since Wednesday afternoon.
+\#litaforum has had `r length(df$text)` tweets total since Wednesday afternoon.
 Here are some basic stats:
 
-* `r sum(tweets_retweets$tweets)-sum(tweets_retweets$retweets)` unique tweets
-* `r sum(tweets_retweets$retweets)` retweets
+* `r sum(tweets_retweets_day$value[tweets_retweets_day$variable == "tweets"])-sum(tweets_retweets_day$value[tweets_retweets_day$variable == "retweets"])` unique tweets
+* `r sum(tweets_retweets_day$value[tweets_retweets_day$variable == "retweets"])` retweets
 * `r length(unique(df$screen_name))` unique users tweeting
 
+#### Total Tweets and Users
 ```{r overview, echo = FALSE}
-people <- ggplot(users_tweets_per_day, aes(x = day, y = value, color = variable)) +
+users_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c("tweets", "users"),], aes(x = day, y = value, color = variable)) +
   geom_line() +
   geom_point() +
   theme_hc() +
   scale_color_hc() +
-  labs(x = "Date", y = "", title = "Unique Users vs. Tweets")
+  labs(x = "Date", y = "", title = "By Day")
 
-ggplotly(people)
+
+
+users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("tweets", "users"),], aes(x = time, y = value, color = variable)) +
+  geom_line() +
+  geom_point() +
+  theme_hc() +
+  scale_color_hc() +
+  labs(x = "Time", y = "", title = "By Time") +
+  facet_grid(day~.)
+
+
+
+ggplotly(users_day_plot)
+ggplotly(users_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
+
+```
+
+------
+
+#### Unique Tweets and Retweets
+```{r retweets, echo = FALSE}
+retweets_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c("unique", "retweets"),], aes(x = day, y = value, color = variable)) +
+  geom_line() +
+  geom_point() +
+  theme_hc() +
+  scale_color_hc() +
+  labs(x = "Date", y = "", title = "By Day")
+
+retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("unique", "retweets"),], aes(x = time, y = value, color = variable)) +
+  geom_line() +
+  geom_point() +
+  theme_hc() +
+  scale_color_hc() +
+  labs(x = "Time", y = "", title = "By Time") +
+  facet_grid(day~.)
+
+ggplotly(retweets_day_plot)
+ggplotly(retweets_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
 ```
 
 
