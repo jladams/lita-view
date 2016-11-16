@@ -16,7 +16,12 @@ library(DT)
 library(stringr)
 
 files_raw <- list.files("~/Box Sync/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
-tweets_raw <- lapply(files_raw, read_csv)
+tweets_raw <- lapply(files_raw, read_csv, col_types = cols(id_str = col_character(),
+                                                           in_reply_to_user_id_str = col_character(),
+                                                           in_reply_to_status_id_str = col_character(),
+                                                           user_id_str = col_character()
+                                                           )
+                     )
 df_raw <- bind_rows(tweets_raw)
 
 df <- df_raw %>%
@@ -96,7 +101,7 @@ ggplotly(people)
 ```
 
 
-### Sentiment Frequency by Day
+### Sentiment/Emotion Frequency by Day
 
 ```{r sent_day, echo = FALSE}
 sentiment_freq_generic <- ggplot(sent_day_generic, aes(x = sentiment, y = frequency)) +
@@ -122,7 +127,7 @@ print(sentiment_freq_specific)
 
 ```
 
-### Sentiment Frequency by Time
+### Sentiment/Emotion Frequency by Time
 ```{r sent_time, echo = FALSE}
 sent_lines_generic <- ggplot(sent_time_generic, aes(x = time, y = frequency)) +
   geom_line(aes(color = sentiment, group = sentiment)) +
