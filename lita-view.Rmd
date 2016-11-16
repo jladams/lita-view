@@ -1,7 +1,6 @@
 ---
 title: "LITA Tweets"
 author: "James L. Adams"
-date: "11/15/2016"
 output: html_document
 ---
 
@@ -50,6 +49,14 @@ df_tidy <- df %>%
   unnest_tokens(output = word, input = text) %>%
   anti_join(stop_words)
 
+df_common_words <- table(df_tidy$word) %>%
+  as_data_frame() %>%
+  filter(!(Var1 %in% c("https", "t.co", "rt", "amp"))) %>%
+  arrange(desc(n)) %>%
+  head(n = 10) %>%
+  mutate(word = factor(Var1, levels = Var1)) %>%
+  select(word, n)
+
 df_sentiment <- df_tidy %>%
   left_join(get_sentiments(lexicon = "nrc")) %>%
   filter(!is.na(sentiment)) %>%
@@ -77,7 +84,7 @@ sent_time_generic <- df_sentiment %>%
 
 ## LITA Forum 2016 {.tabset}
 
-This is how those tweets break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
+This is how tweets on the #litaforum hashtag break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm). You can also download the raw data and mess around with it yourself.
 
 Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view).
 
@@ -92,6 +99,19 @@ Here are some basic stats:
 * `r sum(tweets_retweets_day$value[tweets_retweets_day$variable == "retweets"])` retweets
 * `r length(unique(df$screen_name))` unique users tweeting
 
+#### Most Popular Terms
+```{r pop_words, echo = FALSE}
+word_plot <- ggplot(df_common_words, aes(x = word, y = n)) +
+  geom_bar(fill = "#12887d", stat = "identity") +
+  theme_hc() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) +
+  labs(x = "")
+
+ggplotly(word_plot)
+```
+
+--------
+
 #### Total Tweets and Users
 ```{r overview, echo = FALSE}
 users_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c("tweets", "users"),], aes(x = day, y = value, color = variable)) +
@@ -101,8 +121,6 @@ users_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c
   scale_color_hc() +
   labs(x = "Date", y = "", title = "By Day")
 
-
-
 users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("tweets", "users"),], aes(x = time, y = value, color = variable)) +
   geom_line() +
   geom_point() +
@@ -110,8 +128,6 @@ users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in
   scale_color_hc() +
   labs(x = "Time", y = "", title = "By Time") +
   facet_grid(day~.)
-
-
 
 ggplotly(users_day_plot)
 ggplotly(users_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
