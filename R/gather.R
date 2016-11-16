@@ -7,7 +7,7 @@ load("/Users/jamesadams/projects/lita-stream/data/myoauth.Rdata")
 
 tweetTemp <- tempfile(fileext = ".json")
 
-filterStream(tweetTemp, track = "NationalFastFoodDay", timeout = 60, oauth = myoauth, verbose = TRUE)
+filterStream(tweetTemp, track = "litaforum", timeout = 3600, oauth = myoauth, verbose = TRUE)
 
 df_raw <- parseTweets(tweetTemp, simplify = TRUE)
 

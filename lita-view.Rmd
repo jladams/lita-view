@@ -48,7 +48,7 @@ tweets_retweets_day <- df %>%
 
 # Tweets, retweets, users, and unique by day and time
 tweets_retweets_time <- df %>%
-  group_by(day = date(created), time = floor_date(created, unit = "minutes")) %>%
+  group_by(day = date(created), time = floor_date(created, unit = "hours")) %>%
   summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet))) %>%
   mutate(unique = tweets-retweets) %>%
   gather(variable, value, -time, -day)
@@ -72,7 +72,7 @@ df_common_words <- table(df_tidy$word) %>%
 df_sentiment <- df_tidy %>%
   left_join(get_sentiments(lexicon = "nrc")) %>%
   filter(!is.na(sentiment)) %>%
-  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created, unit = "minutes")) %>%
+  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created, unit = "hours")) %>%
   summarize(frequency = n()) %>%
   arrange(desc(frequency))
 
