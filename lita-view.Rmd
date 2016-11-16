@@ -14,15 +14,20 @@ library(ggthemes)
 library(DT)
 library(stringr)
 
+# Get list of files
 files_raw <- list.files("~/OneDrive - Dartmouth College/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
+
+# Read each of those files with specified column types to help avoid errors
 tweets_raw <- lapply(files_raw, read_csv, col_types = cols(id_str = col_character(),
                                                            in_reply_to_user_id_str = col_character(),
                                                            in_reply_to_status_id_str = col_character(),
                                                            user_id_str = col_character()
                                                            )
                      )
+# Bind all of the data frames together
 df_raw <- bind_rows(tweets_raw)
 
+# Clean up the date/time from Twitter's weird format, keep only relevant variables
 df <- df_raw %>%
   mutate(created = as.POSIXct(created_at, 
                               format="%a %b %d %H:%M:%S +0000 %Y", 
@@ -33,22 +38,28 @@ df <- df_raw %>%
          ) %>%
   select(screen_name, id_str, created, text, lang, geo_enabled, retweet_count, time_zone, is_retweet)
 
+# All the data frames!!!!!!
+# Tweets, retweets, users, and unique by day
 tweets_retweets_day <- df %>%
   group_by(day = date(created)) %>%
   summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet))) %>%
   mutate(unique = tweets-retweets) %>%
   gather(variable, value, -day)
 
+# Tweets, retweets, users, and unique by day and time
 tweets_retweets_time <- df %>%
   group_by(day = date(created), time = floor_date(created, unit = "minutes")) %>%
   summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet))) %>%
   mutate(unique = tweets-retweets) %>%
   gather(variable, value, -time, -day)
 
+# Tokenize words and remove stop words
 df_tidy <- df %>%
   unnest_tokens(output = word, input = text) %>%
   anti_join(stop_words)
 
+# Get 10 most common words, remove things like "https" that are clearly for links
+# Making the word column a factor makes it easier to make a pretty, sorted column graph later
 df_common_words <- table(df_tidy$word) %>%
   as_data_frame() %>%
   filter(!(Var1 %in% c("https", "t.co", "rt", "amp"))) %>%
@@ -57,6 +68,7 @@ df_common_words <- table(df_tidy$word) %>%
   mutate(word = factor(Var1, levels = Var1)) %>%
   select(word, n)
 
+# Attach sentiments and emotions to tokenized words
 df_sentiment <- df_tidy %>%
   left_join(get_sentiments(lexicon = "nrc")) %>%
   filter(!is.na(sentiment)) %>%
@@ -64,19 +76,23 @@ df_sentiment <- df_tidy %>%
   summarize(frequency = n()) %>%
   arrange(desc(frequency))
 
+# Emotions by day
 sent_day_specific <- df_sentiment %>%
   filter(!(sentiment %in% c("positive", "negative"))) %>%
   group_by(day, sentiment) %>%
   summarize(frequency = sum(frequency))
 
+# Sentiments by day
 sent_day_generic <- df_sentiment %>%
   filter((sentiment %in% c("positive", "negative"))) %>%
   group_by(day, sentiment) %>%
   summarize(frequency = sum(frequency))
 
+# Emotions by time
 sent_time_specific <- df_sentiment %>%
   filter(!(sentiment %in% c("positive", "negative")))
 
+# Sentiments by time
 sent_time_generic <- df_sentiment %>%
   filter((sentiment %in% c("positive", "negative")))
 
