@@ -13,6 +13,7 @@ library(tidytext)
 library(plotly)
 library(ggthemes)
 library(DT)
+library(stringr)
 
 files_raw <- list.files("~/Box Sync/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
 tweets_raw <- lapply(files_raw, read_csv)
@@ -23,15 +24,19 @@ df <- df_raw %>%
                               format="%a %b %d %H:%M:%S +0000 %Y", 
                               tz="GMT", 
                               origin="1970-01-01"
-                              )
+                              ),
+         is_retweet = str_detect(text, "RT @")
          ) %>%
-  select(screen_name, id_str, created, text, lang, geo_enabled, retweet_count, time_zone)
+  select(screen_name, id_str, created, text, lang, geo_enabled, retweet_count, time_zone, is_retweet)
 
 users_tweets_per_day <- df %>%
   group_by(day = date(created)) %>%
   summarize(users = length(unique(screen_name)), tweets = length(text)) %>%
   gather(variable, value, users:tweets)
 
+tweets_retweets <- df %>%
+  group_by(day = date(created)) %>%
+  summarize(users = length(unique(screen_name)), tweets = length(text), retweets = sum(as.numeric(is_retweet)))
 
 df_tidy <- df %>%
   unnest_tokens(output = word, input = text) %>%
@@ -64,13 +69,21 @@ sent_time_generic <- df_sentiment %>%
 
 ## LITA Forum 2016 {.tabset}
 
-During the LITA Forum 2016 so far we've had `r length(df$id_str)` tweets using the hashtag #litaforum.
-
 This is how those tweets break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
 
-Last updated `r stamp("Tuesday, November 15, 2016 at 12:07 pm")(now())`. Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view).
+Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view), data will be available soon.
+
+Last updated `r stamp("Tuesday, November 15, 2016 at 12:07 pm")(now())`. 
 
 ### Overview
+
+#### \#litaforum has had `r length(df$text)` tweets total since Wednesday afternoon.
+Here are some basic stats:
+
+* `r sum(tweets_retweets$tweets)-sum(tweets_retweets$retweets)` unique tweets
+* `r sum(tweets_retweets$retweets)` retweets
+* `r length(unique(df$screen_name))` unique users tweeting
+
 ```{r overview, echo = FALSE}
 people <- ggplot(users_tweets_per_day, aes(x = day, y = value, color = variable)) +
   geom_line() +
@@ -107,7 +120,6 @@ sentiment_freq_specific <- ggplot(sent_day_specific, aes(x = sentiment, y = freq
 print(sentiment_freq_generic)
 print(sentiment_freq_specific)
 
-lubridate::stamp
 ```
 
 ### Sentiment Frequency by Time
@@ -136,5 +148,10 @@ ggplotly(sent_lines_specific) %>% layout(legend = list(x = 1.05, y = 1))
 
 ### Raw Data
 ```{r data, echo = FALSE}
-datatable(df_raw, class = "cell-border stripe")
+datatable(df_raw, 
+          class = "cell-border stripe", 
+          escape = FALSE, extensions = "Buttons", 
+          options = list(dom = "Bfrtip", buttons = c("copy", "csv", "excel", "pdf", "print")), 
+          rownames = FALSE
+          )
 ```
