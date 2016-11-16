@@ -8,15 +8,8 @@ load("./data/myoauth.Rdata")
 
 tweetTemp <- tempfile(fileext = ".json")
 
-filterStream(tweetTemp, track = "AmericaRecyclesDay", timeout = 300, oauth = myoauth, verbose = TRUE)
+filterStream(tweetTemp, track = "WednesdayWisdom", timeout = 60, oauth = myoauth, verbose = TRUE)
 
-df <- parseTweets(tweetTemp, simplify = TRUE) %>%
-  mutate(created = as.POSIXct(created_at, 
-                              format="%a %b %d %H:%M:%S +0000 %Y", 
-                              tz="GMT", 
-                              origin="1970-01-01"
-                              )
-         ) %>%
-  select(id_str, created, text, lang, geo_enabled, retweet_count, time_zone)
+df_raw <- parseTweets(tweetTemp, simplify = TRUE)
 
-write_csv(df, "./data/tweets.csv")
+write_csv(df_raw, paste0("~/Box Sync/lita-tweets/", as.numeric(now()),"-raw.csv"))

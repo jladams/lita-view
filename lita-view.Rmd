@@ -12,8 +12,26 @@ library(lubridate)
 library(tidytext)
 library(plotly)
 library(ggthemes)
+library(DT)
 
-df <- read_csv("./data/tweets.csv", col_types = cols(id_str = col_character()))
+files_raw <- list.files("~/Box Sync/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)
+tweets_raw <- lapply(files_raw, read_csv)
+df_raw <- bind_rows(tweets_raw)
+
+df <- df_raw %>%
+  mutate(created = as.POSIXct(created_at, 
+                              format="%a %b %d %H:%M:%S +0000 %Y", 
+                              tz="GMT", 
+                              origin="1970-01-01"
+                              )
+         ) %>%
+  select(screen_name, id_str, created, text, lang, geo_enabled, retweet_count, time_zone)
+
+users_tweets_per_day <- df %>%
+  group_by(day = date(created)) %>%
+  summarize(users = length(unique(screen_name)), tweets = length(text)) %>%
+  gather(variable, value, users:tweets)
+
 
 df_tidy <- df %>%
   unnest_tokens(output = word, input = text) %>%
@@ -44,11 +62,26 @@ sent_time_generic <- df_sentiment %>%
 
 ```
 
-## Tweet Sentiment
+## LITA Forum 2016 {.tabset}
 
 During the LITA Forum 2016 so far we've had `r length(df$id_str)` tweets using the hashtag #litaforum.
 
-This is how those tweets look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
+This is how those tweets break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm).
+
+Last updated `r stamp("Tuesday, November 15, 2016 at 12:07 pm")(now())`. Code is available (badly commented) on [GitHub](http://github.com/jladams/lita-view).
+
+### Overview
+```{r overview, echo = FALSE}
+people <- ggplot(users_tweets_per_day, aes(x = day, y = value, color = variable)) +
+  geom_line() +
+  geom_point() +
+  theme_hc() +
+  scale_color_hc() +
+  labs(x = "Date", y = "", title = "Unique Users vs. Tweets")
+
+ggplotly(people)
+```
+
 
 ### Sentiment Frequency by Day
 
@@ -64,14 +97,17 @@ sentiment_freq_generic <- ggplot(sent_day_generic, aes(x = sentiment, y = freque
 
 sentiment_freq_specific <- ggplot(sent_day_specific, aes(x = sentiment, y = frequency)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
-  facet_grid(.~day) +
+  facet_wrap(~ day) +
   theme_hc() +
-  scale_fill_hc(guide = FALSE) +
+  scale_fill_economist(guide = FALSE) +
   geom_text(aes(label = frequency), vjust = 0) +
-  labs(title = "Specific Emotions", x = "")
+  labs(title = "Specific Emotions", x = "") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
 
 print(sentiment_freq_generic)
 print(sentiment_freq_specific)
+
+lubridate::stamp
 ```
 
 ### Sentiment Frequency by Time
@@ -89,12 +125,16 @@ sent_lines_specific <- ggplot(sent_time_specific, aes(x = time, y = frequency)) 
   geom_point(aes(color = sentiment)) +
   facet_grid(day~.) +
   theme_hc() +
-  scale_color_hc() +
-  labs(title = "Specific Emotions", x = "")
+  scale_color_economist() +
+  labs(title = "Specific Emotions", x = "") +
+  theme(legend.position = "bottom")
 
-ggplotly(sent_lines_generic) %>% layout(showlegend = FALSE)
-ggplotly(sent_lines_specific) %>% layout(showlegend = FALSE)
+ggplotly(sent_lines_generic) %>% layout(legend = list(x = 1.05, y = 1))
+ggplotly(sent_lines_specific) %>% layout(legend = list(x = 1.05, y = 1))
 
 ```
 
-Code is available on [GitHub](http://github.com/jladams/lita-view)
+### Raw Data
+```{r data, echo = FALSE}
+datatable(df_raw, class = "cell-border stripe")
+```
