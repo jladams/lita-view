@@ -4,15 +4,15 @@ author: "James L. Adams"
 output: html_document
 ---
 
-```{r setup, include=FALSE, echo = FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(lubridate)
-library(tidytext)
-library(plotly)
-library(ggthemes)
 library(DT)
+library(ggthemes)
+library(lubridate)
+library(plotly)
 library(stringr)
+library(tidytext)
+library(tidyverse)
 
 # Get list of files
 files_raw <- list.files("~/OneDrive - Dartmouth College/lita-tweets", pattern = "*-raw.csv", full.names = TRUE)

@@ -1,7 +1,6 @@
 
 library(streamR)
 library(ROAuth)
-library(tidyverse)
 library(lubridate)
 
 load("/Users/jamesadams/projects/lita-stream/data/myoauth.Rdata")
