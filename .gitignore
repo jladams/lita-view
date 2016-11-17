@@ -3,5 +3,4 @@
 .RData
 .Ruserdata
 oauth.R
-oauth_setup.R
 data/

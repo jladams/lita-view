@@ -102,15 +102,15 @@ sent_time_generic <- df_sentiment %>%
 
 This is how tweets on the #litaforum hashtag break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm). You can also download the raw data and mess around with it yourself.
 
-Code is available on [GitHub](http://github.com/jladams/lita-view). Tweets have been gathered using Twitter's streaming API and the streamR package for R. Data has been recorded at half-hour intervals whenever my computer has been open, but hopefully there won't be too many gaps!
+Code is available on [GitHub](http://github.com/jladams/lita-view). Tweets have been gathered using Twitter's streaming API and the streamR package for R. Data has been recorded at half-hour intervals whenever my laptop has been open since Thursday afternoon, so hopefully there won't be too many gaps!
 
 Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 pm")(now())`. 
 
 ### Overview
 
-\#litaforum has had `r length(df$text)` tweets total since Wednesday afternoon.
-Here are some basic stats:
+Some basic stats for \#litaforum:
 
+* `r length(df$text)` total tweets
 * `r sum(tweets_retweets_day$value[tweets_retweets_day$variable == "tweets"])-sum(tweets_retweets_day$value[tweets_retweets_day$variable == "retweets"])` unique tweets
 * `r sum(tweets_retweets_day$value[tweets_retweets_day$variable == "retweets"])` retweets
 * `r length(unique(df$screen_name))` unique users tweeting
