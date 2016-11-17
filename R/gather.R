@@ -2,12 +2,13 @@
 library(streamR)
 library(ROAuth)
 library(lubridate)
+library(readr)
 
-load("/Users/jamesadams/projects/lita-stream/data/myoauth.Rdata")
+load("/Users/jamesadams/projects/lita-view/data/myoauth.Rdata")
 
 tweetTemp <- tempfile(fileext = ".json")
 
-filterStream(tweetTemp, track = "litaforum", timeout = 3600, oauth = myoauth, verbose = TRUE)
+filterStream(tweetTemp, track = "litaforum", timeout = 1800, oauth = myoauth, verbose = TRUE)
 
 df_raw <- parseTweets(tweetTemp, simplify = TRUE)
 
