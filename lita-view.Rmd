@@ -63,7 +63,7 @@ df_tidy <- df %>%
 # Making the word column a factor makes it easier to make a pretty, sorted column graph later
 df_common_words <- table(df_tidy$word) %>%
   as_data_frame() %>%
-  filter(!(Var1 %in% c("https", "t.co", "rt", "amp"))) %>%
+  filter(!(Var1 %in% c("https", "t.co", "rt", "amp", "litaforum"))) %>%
   arrange(desc(n)) %>%
   head(n = 10) %>%
   mutate(word = factor(Var1, levels = Var1)) %>%
