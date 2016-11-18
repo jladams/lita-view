@@ -160,14 +160,14 @@ retweets_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in
   geom_line() +
   geom_point() +
   theme_hc() +
-  scale_color_hc() +
+  scale_color_fivethirtyeight() +
   labs(x = "Date", y = "", title = "By Day")
 
 retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("unique", "retweets"),], aes(x = hour(time), y = value, color = variable)) +
   geom_line() +
   geom_point() +
   theme_hc() +
-  scale_color_hc() +
+  scale_color_fivethirtyeight() +
   labs(x = "Time (America/Chicago)", y = "", title = "By Time") +
   facet_grid(day~.) +
   scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
@@ -184,7 +184,7 @@ sentiment_freq_generic <- ggplot(sent_day_generic, aes(x = sentiment, y = freque
   geom_bar(aes(fill = sentiment), stat = "identity") +
   facet_grid(.~day) +
   theme_hc() +
-  scale_fill_hc(guide = FALSE) +
+  scale_fill_colorblind(guide = FALSE) +
   geom_text(aes(label = frequency), vjust = 0) +
   labs(title = "Positive vs. Negative", x = "")
 
@@ -210,7 +210,7 @@ sent_lines_generic <- ggplot(sent_time_generic, aes(x = hour(time), y = frequenc
   geom_point(aes(color = sentiment)) +
   facet_grid(day~.) +
   theme_hc() +
-  scale_color_hc() +
+  scale_color_colorblind() +
   labs(title = "Positive vs. Negative", x = "Time (America/Chicago)") +
   scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
 
