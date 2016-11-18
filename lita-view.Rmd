@@ -236,7 +236,7 @@ datatable(df_raw,
           class = "cell-border stripe", 
           escape = FALSE, extensions = "Buttons", 
           options = list(dom = "Bfrtip", 
-                         buttons = c("csv", "excel", "pdf"),
+                         buttons = c("csv", "excel"),
                          order = list(4, "desc")
                          ), 
           rownames = FALSE
