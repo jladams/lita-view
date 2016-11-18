@@ -105,7 +105,7 @@ This is how tweets on the #litaforum hashtag break down, and how they look when 
 
 Code is available on [GitHub](http://github.com/jladams/lita-view). Tweets have been gathered using Twitter's streaming API and the streamR package for R. Data has been recorded at half-hour intervals whenever my laptop has been open since Thursday afternoon, so hopefully there won't be too many gaps!
 
-Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 pm")(now())`. 
+Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 Central Time")(now())`. 
 
 ### Overview
 
@@ -138,13 +138,14 @@ users_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c
   scale_color_hc() +
   labs(x = "Date", y = "", title = "By Day")
 
-users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("tweets", "users"),], aes(x = time, y = value, color = variable)) +
+users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("tweets", "users"),], aes(x = hour(time), y = value, color = variable, group = variable)) +
   geom_line() +
   geom_point() +
   theme_hc() +
   scale_color_hc() +
   labs(x = "Time (America/Chicago)", y = "", title = "By Time") +
-  facet_grid(day~.)
+  facet_grid(day~.) +
+  scale_x_continuous(labels = format(unique(tweets_retweets_time$time), "%H:%M"))
 
 ggplotly(users_day_plot)
 ggplotly(users_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
@@ -162,13 +163,14 @@ retweets_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in
   scale_color_hc() +
   labs(x = "Date", y = "", title = "By Day")
 
-retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("unique", "retweets"),], aes(x = time, y = value, color = variable)) +
+retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("unique", "retweets"),], aes(x = hour(time), y = value, color = variable)) +
   geom_line() +
   geom_point() +
   theme_hc() +
   scale_color_hc() +
   labs(x = "Time (America/Chicago)", y = "", title = "By Time") +
-  facet_grid(day~.)
+  facet_grid(day~.) +
+  scale_x_continuous(labels = format(unique(tweets_retweets_time$time), "%H:%M"))
 
 ggplotly(retweets_day_plot)
 ggplotly(retweets_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
@@ -203,22 +205,25 @@ print(sentiment_freq_specific)
 
 ### Sentiment/Emotion Frequency by Time
 ```{r sent_time, echo = FALSE}
-sent_lines_generic <- ggplot(sent_time_generic, aes(x = time, y = frequency)) +
+sent_lines_generic <- ggplot(sent_time_generic, aes(x = hour(time), y = frequency)) +
   geom_line(aes(color = sentiment, group = sentiment)) +
   geom_point(aes(color = sentiment)) +
   facet_grid(day~.) +
   theme_hc() +
   scale_color_hc() +
-  labs(title = "Positive vs. Negative", x = "")
+  labs(title = "Positive vs. Negative", x = "Time (America/Chicago)") +
+  scale_x_continuous(labels = format(unique(tweets_retweets_time$time), "%H:%M"))
 
-sent_lines_specific <- ggplot(sent_time_specific, aes(x = time, y = frequency)) +
+
+sent_lines_specific <- ggplot(sent_time_specific, aes(x = hour(time), y = frequency)) +
   geom_line(aes(color = sentiment, group = sentiment)) +
   geom_point(aes(color = sentiment)) +
   facet_grid(day~.) +
   theme_hc() +
   scale_color_economist() +
-  labs(title = "Specific Emotions", x = "") +
-  theme(legend.position = "bottom")
+  labs(title = "Specific Emotions", x = "Time (America/Chicago)") +
+  theme(legend.position = "bottom") +
+  scale_x_continuous(labels = format(unique(tweets_retweets_time$time), "%H:%M"))
 
 ggplotly(sent_lines_generic) %>% layout(legend = list(x = 1.05, y = 1))
 ggplotly(sent_lines_specific) %>% layout(legend = list(x = 1.05, y = 1))
@@ -230,7 +235,10 @@ ggplotly(sent_lines_specific) %>% layout(legend = list(x = 1.05, y = 1))
 datatable(df_raw, 
           class = "cell-border stripe", 
           escape = FALSE, extensions = "Buttons", 
-          options = list(dom = "Bfrtip", buttons = c("csv", "excel", "pdf")), 
+          options = list(dom = "Bfrtip", 
+                         buttons = c("csv", "excel", "pdf"),
+                         order = list(4, "desc")
+                         ), 
           rownames = FALSE
           )
 ```
