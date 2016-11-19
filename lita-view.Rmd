@@ -121,7 +121,7 @@ Some basic stats for \#litaforum:
 word_plot <- ggplot(df_common_words, aes(x = word, y = n)) +
   geom_bar(fill = "#12887d", stat = "identity") +
   theme_hc() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5), panel.border = element_rect(color = "black", fill = NA)) +
   labs(x = "")
 
 ggplotly(word_plot)
@@ -136,7 +136,9 @@ users_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in% c
   geom_point() +
   theme_hc() +
   scale_color_hc() +
-  labs(x = "Date", y = "", title = "By Day")
+  labs(x = "Date", y = "", title = "By Day") +
+  theme(panel.border = element_rect(color = "black", fill = NA))
+
 
 users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("tweets", "users"),], aes(x = hour(time), y = value, color = variable, group = variable)) +
   geom_line() +
@@ -145,7 +147,8 @@ users_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in
   scale_color_hc() +
   labs(x = "Time (America/Chicago)", y = "", title = "By Time") +
   facet_grid(day~.) +
-  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
+  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm")) +
+  theme(panel.border = element_rect(color = "black", fill = NA))
 
 ggplotly(users_day_plot)
 ggplotly(users_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
@@ -161,7 +164,8 @@ retweets_day_plot <- ggplot(tweets_retweets_day[tweets_retweets_day$variable %in
   geom_point() +
   theme_hc() +
   scale_color_fivethirtyeight() +
-  labs(x = "Date", y = "", title = "By Day")
+  labs(x = "Date", y = "", title = "By Day") +
+  theme(panel.border = element_rect(color = "black", fill = NA))
 
 retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable %in% c("unique", "retweets"),], aes(x = hour(time), y = value, color = variable)) +
   geom_line() +
@@ -170,7 +174,8 @@ retweets_time_plot <- ggplot(tweets_retweets_time[tweets_retweets_time$variable 
   scale_color_fivethirtyeight() +
   labs(x = "Time (America/Chicago)", y = "", title = "By Time") +
   facet_grid(day~.) +
-  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
+  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm")) +
+  theme(panel.border = element_rect(color = "black", fill = NA))
 
 ggplotly(retweets_day_plot)
 ggplotly(retweets_time_plot) %>% layout(legend = list(x = 1.05, y = 1))
@@ -212,7 +217,8 @@ sent_lines_generic <- ggplot(sent_time_generic, aes(x = hour(time), y = frequenc
   theme_hc() +
   scale_color_colorblind() +
   labs(title = "Positive vs. Negative", x = "Time (America/Chicago)") +
-  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
+  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm")) +
+  theme(panel.border = element_rect(color = "black", fill = NA))
 
 
 sent_lines_specific <- ggplot(sent_time_specific, aes(x = hour(time), y = frequency)) +
@@ -223,7 +229,8 @@ sent_lines_specific <- ggplot(sent_time_specific, aes(x = hour(time), y = freque
   scale_color_economist() +
   labs(title = "Specific Emotions", x = "Time (America/Chicago)") +
   theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm"))
+  scale_x_continuous(breaks = c(6, 12, 18), labels = c("6:00am", "12:00pm", "6:00pm")) +
+  theme(panel.border = element_rect(color = "black", fill = NA))
 
 ggplotly(sent_lines_generic) %>% layout(legend = list(x = 1.05, y = 1))
 ggplotly(sent_lines_specific) %>% layout(legend = list(x = 1.05, y = 1))
