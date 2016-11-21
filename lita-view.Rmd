@@ -73,7 +73,7 @@ df_common_words <- table(df_tidy$word) %>%
 df_sentiment <- df_tidy %>%
   left_join(get_sentiments(lexicon = "nrc")) %>%
   filter(!is.na(sentiment)) %>%
-  group_by(sentiment, day = wday(created, label = TRUE), time = floor_date(created, unit = "hours")) %>%
+  group_by(sentiment, day = as_date(created), time = floor_date(created, unit = "hours")) %>%
   summarize(frequency = n()) %>%
   arrange(desc(frequency))
 
@@ -103,9 +103,9 @@ sent_time_generic <- df_sentiment %>%
 
 This is how tweets on the #litaforum hashtag break down, and how they look when their words are mapped to the [NRC Word-Emotion Association Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm). You can also download the raw data and mess around with it yourself.
 
-Code is available on [GitHub](http://github.com/jladams/lita-view). Tweets have been gathered using Twitter's streaming API and the streamR package for R. Data has been recorded at half-hour intervals whenever my laptop has been open since Thursday afternoon, so hopefully there won't be too many gaps!
+Code is available on [GitHub](http://github.com/jladams/lita-view). Tweets have been gathered using Twitter's streaming API and the streamR package for R. Data was recorded at half-hour intervals whenever my laptop was open between the afternoon of Thursday, November 17 and the early morning of Sunday, November 20.
 
-Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 Central Time")(now())`. 
+Last updated `r stamp("Tuesday, November 15, 2016 at 1:07 Eastern Time")(now())`. 
 
 ### Overview
 
